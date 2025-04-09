@@ -193,11 +193,7 @@ ggplot(data = diamonds) +
 
 **Paper: Half a century of global decline in oceanic sharks and rays (Pacoureau et al. 2021)**
 
-Basing my data analysis off Figure 1 from the paper:
-
-![](images/clipboard-2577092648.png)
-
-Figure 1 - The global percentage of decline was calculated from the posteriors of the LPI around the final assessment year relative to the posteriors for 1970. The black line denotes the mean, the white lines the 95% credible intervals and the grey lines each iteration.
+Basing my data analysis off Figure 1 from the paper (Figure 1 - The global percentage of decline was calculated from the posteriors of the LPI around the final assessment year relative to the posteriors for 1970. The black line denotes the mean, the white lines the 95% credible intervals and the grey lines each iteration.)
 
 ## 2.2: Find two issues with the plot and create potential solutions:
 
@@ -218,7 +214,6 @@ The small inset plot (global percentage decline distribution) is somewhat crampe
 ## 2.3: Implement the potential solutions and reconstruct a better version of the plot:
 
 ```{r echo=T, message=FALSE, warning=FALSE}
-
 # Load necessary libraries
 library(ggplot2)
 library(dplyr)
@@ -226,11 +221,8 @@ library(readr)
 library(gridExtra)
 library(grid)
 
-# Set file path (update this to your local path)
-file_path <- "C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/Pacoureaudata.csv"
-
 # Load dataset
-df <- read_csv(file_path)
+df <- read_csv("data/Pacoureau_Figure_1.csv")
 
 # Function to extract mean, lower, and upper values from formatted LPI data
 extract_lpi_values <- function(value) {
@@ -285,11 +277,11 @@ grid.arrange(main_plot, inset_plot, ncol = 2, widths = c(3, 1))
 
 *Figure 1 -*
 
-A) Graph depicts the Living Planet Index (LPI) decline for oceanic sharks and rays from 1970 to 2020. The black line represents the mean LPI, which quantifies the relative abundance of species over time. The grey shaded area represents the 95% credible interval, providing an estimate of the uncertainty in the population trend. The LPI shows a continuous decline over the past five decades, with the index dropping to below 0.25 by 2020, indicating an over 75% reduction in relative abundance. This downward trend reflects the global depletion of oceanic shark and ray populations, primarily driven by overfishing, habitat degradation, and bycatch in commercial fisheries (Pacoureau et al. 2021).
+A)  Graph depicts the Living Planet Index (LPI) decline for oceanic sharks and rays from 1970 to 2020. The black line represents the mean LPI, which quantifies the relative abundance of species over time. The grey shaded area represents the 95% credible interval, providing an estimate of the uncertainty in the population trend. The LPI shows a continuous decline over the past five decades, with the index dropping to below 0.25 by 2020, indicating an over 75% reduction in relative abundance. This downward trend reflects the global depletion of oceanic shark and ray populations, primarily driven by overfishing, habitat degradation, and bycatch in commercial fisheries (Pacoureau et al. 2021).
 
-B) Boxplot presents the global percentage of decline in oceanic shark and ray populations. The boxplot summarizes the posterior distribution of decline estimates derived from Bayesian models. The central horizontal line within the box represents the median estimate, while the upper and lower bounds indicate the interquartile range (IQR). The dashed horizontal line at \~70% marks the mean estimated global decline, confirming that oceanic shark and ray populations have declined by approximately 70% since 1970 (Pacoureau et al. 2021).
+B)  Boxplot presents the global percentage of decline in oceanic shark and ray populations. The boxplot summarizes the posterior distribution of decline estimates derived from Bayesian models. The central horizontal line within the box represents the median estimate, while the upper and lower bounds indicate the interquartile range (IQR). The dashed horizontal line at \~70% marks the mean estimated global decline, confirming that oceanic shark and ray populations have declined by approximately 70% since 1970 (Pacoureau et al. 2021).
 
-# WORKSHOP 2
+# WORKSHOP 2: Using ggplot2 for communication
 
 # Part 3: Saving and exporting ggplots
 
@@ -300,45 +292,100 @@ library(gridExtra)
 library(grid)
 
 # Create a file name for the saved plot (change format if needed)
-output_file <- "Figure_1_redone_from_R.png"
+### output_file <- "Figure_1_redone_from_R.png"
 
 # Save the LPI + Decline plot as a PDF (vertically so not to crop the figure)
-ggsave("Figure_1_redone_from_R.pdf", 
-       plot = grid.arrange(main_plot, inset_plot, nrow = 2, heights = c(3, 1)),
-       width = 7, height = 10, device = "pdf")
+### ggsave("Figure_1_redone_from_R.pdf", 
+    ###   plot = grid.arrange(main_plot, inset_plot, nrow = 2, heights = c(3, 1)),
+    ###   width = 7, height = 10, device = "pdf")
 
 # Saved in folder: "MB5370 Module 4 (Data Science in R)"
 ```
 
-# WORKSHOP 3
+# WORKSHOP 3: Data wrangling in R
 
 # Part 4: Assignment
 
-Develop a full end-to-end analysis of a dataset in R. Show you how to take any dataset and use your skills as a marine data scientist to build impressive analyses and data visualisations that you can share with end-users. 
+Develop a full end-to-end analysis of a dataset in R. Show you how to take any dataset and use your skills as a marine data scientist to build impressive analyses and data visualisations that you can share with end-users.
 
-```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+Using Queensland Shark Control Program data, created a bar chart depicting the total number of sharks killed by the Queensland Shark Control Program from 2001 to 2025.
 
-"C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/MB5370 Module 4 (Data Science in R)/data/SharkControl.csv"
+```{r echo=T, message=FALSE, warning=FALSE}
 
 library(tidyverse)
 
-# Assuming your working directory is the project folder.
-SharkControl <- read_csv("SharkControl.csv")
+# Import the SharkControl dataset from the 'data' folder within your project
+Shark <- read_csv("data/Shark_Control_Program.csv")
 
-# View a few rows to confirm it loaded
-head(SharkControl)
+# Preview the data
+head(Shark)
 
+library(ggplot2)
 
+# Create a data frame with the "Grand Total" row
+df <- data.frame(
+  Year  = 2001:2025,
+  Total = c(733, 621, 550, 581, 620,
+            579, 555, 585, 588, 599,
+            700, 751, 685, 585, 695,
+            530, 509, 522, 485, 594,
+            798, 749, 953, 1498, 864)
+)
 
+# Create the bar chart:
+ggplot(df, aes(x = factor(Year), y = Total)) +
+  geom_col(fill = "grey50") +  # Greyscale fill for bars
+  labs(
+    x = "Year",
+    y = "No. of sharks killed"  # Updated y-axis label; no title
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 1600, by = 200),  # Tick marks every 200 up to 1600
+    limits = c(0, 1600),
+    expand = c(0, 0)  # Remove extra space below 0 so the x-axis line touches the bars
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line.x = element_line(color = "black"),  # Black x-axis line
+    axis.line.y = element_line(color = "black"),  # Black y-axis line
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)  # Rotate x-axis labels
+  )
 
 ```
 
-```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+The x-axis represents the individual years, while the y-axis shows the counts of sharks killed.
 
+Made it a create a stacked bar chart to incorporate "Area".
 
+```{r echo=T, message=FALSE, warning=FALSE}
 
+# Preview the data (optional)
+head(Shark)
+
+# Exclude the "Grand Total" row to avoid double counting in the stacked bar chart
+Shark <- Shark %>% 
+  filter(Area != "Grand Total")
+
+# Reshape the data from wide to long format.
+# This creates three columns: Area, Year, and SharksKilled.
+Shark_long <- Shark %>%
+  pivot_longer(
+    cols = -Area,
+    names_to = "Year",
+    values_to = "SharksKilled"
+  )
+
+# Ensure that "Year" is ordered correctly. Convert Year to a factor with levels 2001 to 2025.
+Shark_long <- Shark_long %>%
+  mutate(Year = factor(Year, levels = as.character(2001:2025)))
 
 ```
+
+# WORKSHOP 4: Spatial data in R
+
+# Part 5: **How to use R for spatial analyses**
+
+Develop
 
 ```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
 
