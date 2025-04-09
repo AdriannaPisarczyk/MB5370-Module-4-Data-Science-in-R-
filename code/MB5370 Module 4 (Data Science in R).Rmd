@@ -1,0 +1,348 @@
+---
+title: "MB5370 Module 4 (Data Science in R)"
+author: "Adrianna Pisarczyk"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# WORKSHOP 1
+
+# Part 1: Github and ggplots
+
+## 1.1: Setting up and working in Git and GitHub:
+
+**1.1.1 Progress Review**
+
+I've now set up a version-controlled project using Git and GitHub, and I’m ready to move on to data visualization. Before I do, here’s a quick review of the key functions and concepts I’ve learned about version control in RStudio.
+
+**1.1.2 Pull**
+
+Pulling a repository allows me to sync my local project with the latest version from GitHub. This is crucial if I’m working on multiple computers or collaborating with others. Before pulling, I need to Save, Stage, and Commit my own work to avoid overwriting any changes.
+
+**1.1.3 Stage**
+
+Staging is the process of preparing files for a commit. I can think of it like loading a dump truck with changes—it’s ready to go, but nothing has been saved yet. I have full control over which files I want to include in each commit by staging only the ones I need.
+
+**1.1.4 Commit**
+
+Committing saves a version of my project locally, allowing me to track changes and revert to previous states if needed. However, commits only exist on my computer until I push them to GitHub. I need to write clear and meaningful commit messages to document what changes I made.
+
+**1.1.5 Push**
+
+Pushing sends my committed changes to GitHub, ensuring that my work is backed up and accessible from other devices. If I want others to see my work, collaborate, or just save a secure copy, I need to push regularly. I can commit without pushing, which is useful when I want to track my changes locally before sharing them.To review my commit history, I can click the clock icon in the Git tab, which allows me to see all previous versions and even roll back changes if necessary. Now that my project is fully set up and version-controlled, I’m ready to dive into data visualization with ggplot2!
+
+## 1.2: Load data and create a ggplot:
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+### Load libraries I'll use
+library(tidyverse)
+library(ggplot2)
+library(usethis)
+
+### Load data
+mpg
+
+```
+
+**Create basic ggplot:**
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy))
+
+```
+
+The plot shows a negative relationship between engine size (displ) and fuel efficiency (hwy). In other words, cars with big engines use more fuel.
+
+A high-displacement engine (large engine size) burns more fuel per mile, making it less efficient, whereas a low-displacement engine (small engine size) consumes less fuel, making it more economical. This trade-off is common because larger engines produce more power, but they also require more fuel to run.
+
+**Make ggplot more aesthetic**
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+## Points separated by each vehicle (different colour for each vehicle)
+
+library(ggplot2)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = class), alpha = 0.7, size = 3, shape = 16) + 
+  scale_x_continuous(name = "Engine Size (Litres)", breaks = seq(0, max(mpg$displ), by = 1), limits = c(0, max(mpg$displ))) +
+  scale_y_continuous(name = "Fuel Efficiency (MPG)", breaks = seq(0, max(mpg$hwy), by = 10), limits = c(0, max(mpg$hwy))) +
+  scale_color_manual(values = c("skyblue", "lightcoral", "palegreen", "plum", "lightsalmon", "lightseagreen", "khaki")) +
+  labs(title = "Relationship Between Engine Size and Fuel Efficiency",
+       caption = "Source: ggplot2 mpg dataset") +
+  theme_minimal() +
+  theme(legend.title = element_blank(),
+        plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12, face = "bold"))
+
+
+
+## Points separated by each vehicle Drivetrain system
+
+library(ggplot2)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = drv), alpha = 0.9, size = 2, shape = 16) + 
+  scale_x_continuous(name = "Engine Size (Litres)", breaks = seq(0, max(mpg$displ), by = 1), limits = c(0, max(mpg$displ))) +
+  scale_y_continuous(name = "Fuel Efficiency (MPG)", breaks = seq(0, max(mpg$hwy), by = 10), limits = c(0, max(mpg$hwy))) +
+  scale_color_manual(
+    name = "Drivetrain System:",  # Legend title
+    labels = c("4" = "Four Wheel Drive", "f" = "Front Wheel", "r" = "Rear Wheel"),  # Custom legend labels
+    values = c("4" = "#E41A1C", "f" = "#377EB8", "r" = "#4DAF4A")  # Standard ggplot red, blue, green
+  ) +
+  labs(title = "Relationship Between Engine Size and Fuel Efficiency",
+       caption = "Source: ggplot2 mpg dataset") +
+  theme_minimal() +
+  theme(legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12, face = "bold"))
+
+```
+
+**Add lines to the ggplot (with confidence intervals):**
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+library(ggplot2)
+
+ggplot(data = mpg) + 
+  geom_point(mapping = aes(x = displ, y = hwy, color = drv), alpha = 0.9, size = 2, shape = 16) + 
+  geom_smooth(mapping = aes(x = displ, y = hwy, linetype = drv, color = drv), method = "loess", se = TRUE, linewidth = 1, fill = "grey50") +
+  scale_x_continuous(name = "Engine Size (Litres)", breaks = seq(0, max(mpg$displ), by = 1), limits = c(0, max(mpg$displ))) +
+  scale_y_continuous(name = "Fuel Efficiency (MPG)", breaks = seq(0, max(mpg$hwy), by = 10), limits = c(0, max(mpg$hwy))) +
+  scale_color_manual(
+    name = "Drivetrain System:",
+    labels = c("4" = "Four Wheel Drive", "f" = "Front Wheel", "r" = "Rear Wheel"),
+    values = c("4" = "#E41A1C", "f" = "#377EB8", "r" = "#4DAF4A")
+  ) +
+  scale_linetype_manual(
+    name = "Drivetrain System:",
+    labels = c("4" = "Four Wheel Drive", "f" = "Front Wheel", "r" = "Rear Wheel"),
+    values = c("4" = "dashed", "f" = "solid", "r" = "dotted")
+  ) +
+  labs(title = "Relationship Between Engine Size and Fuel Efficiency",
+       caption = "Source: ggplot2 mpg dataset") +
+  theme_gray() +  # Changes the background to grey
+  theme(legend.title = element_text(size = 12, face = "bold"),
+        legend.text = element_text(size = 10),
+        plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12, face = "bold"))
+
+```
+
+## 1.3: Plot statistical details:
+
+Colored bars within each cut quality represent the count of diamonds for each cut, grouped by clarity (fill = clarity).
+
+Grey bars (demo dataset) → Represent a reference dataset (manually created in the demo tibble). These bars show the overall number of diamonds in each cut category (ignoring clarity), which helps compare the total number of diamonds per cut (grey) against the breakdown by clarity (colored).
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+library(ggplot2)
+library(tibble)  # Needed for tibble()
+
+# Creating a demo dataset (as in the example)
+demo <- tribble(
+  ~cut,         ~freq,
+  "Fair",       1610,
+  "Good",       4906,
+  "Very Good",  12082,
+  "Premium",    13791,
+  "Ideal",      21551
+)
+
+# Main plot incorporating transformations, stats, and aesthetics
+ggplot(data = diamonds) + 
+  geom_bar(mapping = aes(x = cut, fill = clarity), position = "dodge", alpha = 0.8) +  # Dodge bars by clarity
+  geom_bar(data = demo, mapping = aes(x = cut, y = freq), stat = "identity", fill = "grey70", alpha = 0.5) +  # Add reference bars from demo dataset
+  stat_summary(
+    mapping = aes(x = cut, y = depth),
+    fun.min = min,
+    fun.max = max,
+    fun = median,
+    geom = "pointrange",
+    color = "black",
+    size = 0.8
+  ) +  # Add statistical summary
+  labs(
+    title = "Clarity Distribution Across Different Cuts",  # Changed title
+    x = "Cut Quality",
+    y = "Count of Diamonds",
+    fill = "Clarity",
+    caption = "Source: ggplot2 diamonds dataset"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "right",
+        legend.title = element_text(size = 12, face = "bold"),
+        plot.title = element_text(size = 14, face = "bold"),
+        axis.title = element_text(size = 12, face = "bold"))
+
+```
+
+# Part 2: Assignment
+
+## 2.1: Choose data from a scientific paper:
+
+**Paper: Half a century of global decline in oceanic sharks and rays (Pacoureau et al. 2021)**
+
+Basing my data analysis off Figure 1 from the paper:
+
+![](images/clipboard-2577092648.png)
+
+Figure 1 - The global percentage of decline was calculated from the posteriors of the LPI around the final assessment year relative to the posteriors for 1970. The black line denotes the mean, the white lines the 95% credible intervals and the grey lines each iteration.
+
+## 2.2: Find two issues with the plot and create potential solutions:
+
+**What to change:**
+
+**1) Improve clarity of individual iterations (grey lines).**
+
+The grey lines representing each iteration are too dense, making it hard to distinguish individual trajectories.
+
+**Potential solution:** Reduce the number of iterations shown or adjust the transparency (alpha) of the grey lines to improve visibility without overwhelming the main trend.
+
+**2) Enhance readability of the "Global Percentage of Decline" plot.**
+
+The small inset plot (global percentage decline distribution) is somewhat cramped and difficult to interpret.
+
+**Potential solution:** Increase the size of the inset plot for better readability. Change the graph to a boxplot, showing the median, interquartile range (IQR), and outliers.
+
+## 2.3: Implement the potential solutions and reconstruct a better version of the plot:
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(gridExtra)
+library(grid)
+
+# Set file path (update this to your local path)
+file_path <- "C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/Pacoureaudata.csv"
+
+# Load dataset
+df <- read_csv(file_path)
+
+# Function to extract mean, lower, and upper values from formatted LPI data
+extract_lpi_values <- function(value) {
+  if (grepl("\\d+ \\(\\d+\\.\\d+;\\d+\\.\\d+\\)", value)) {
+    parts <- unlist(strsplit(value, " "))
+    bounds <- unlist(strsplit(gsub("[()]", "", parts[2]), ";"))
+    return(c(as.numeric(parts[1]), as.numeric(bounds[1]), as.numeric(bounds[2])))
+  }
+  return(c(NA, NA, NA))
+}
+
+# Process dataset
+df_cleaned <- df %>%
+  pivot_longer(-Year, names_to = "Species", values_to = "LPI") %>%
+  rowwise() %>%
+  mutate(LPI_Extracted = list(extract_lpi_values(LPI))) %>%
+  unnest_wider(LPI_Extracted, names_sep = "_") %>%
+  rename(LPI_Mean = LPI_Extracted_1, LPI_Lower = LPI_Extracted_2, LPI_Upper = LPI_Extracted_3) %>%
+  select(Year, LPI_Mean, LPI_Lower, LPI_Upper) %>%
+  group_by(Year) %>%
+  summarise(LPI_Mean = mean(LPI_Mean, na.rm = TRUE),
+            LPI_Lower = mean(LPI_Lower, na.rm = TRUE),
+            LPI_Upper = mean(LPI_Upper, na.rm = TRUE))
+
+# Create main LPI plot
+main_plot <- ggplot(df_cleaned, aes(x = Year, y = LPI_Mean)) +
+  geom_ribbon(aes(ymin = LPI_Lower, ymax = LPI_Upper), fill = "grey", alpha = 0.5) +
+  geom_line(color = "black", size = 1.2) +
+  labs(title = expression(bold("A") ~ "   Living Planet Index Decline (1970-2020)"),
+       x = "Year",
+       y = "Living Planet Index") +
+  theme_minimal()
+
+# Simulated decline data
+inset_data <- data.frame(Decline = runif(1000, 50, 90))  # Replace with real posterior samples
+
+# Create Boxplot for Global Percentage Decline
+inset_plot <- ggplot(inset_data, aes(x = "", y = Decline)) +
+  geom_boxplot(fill = "grey", alpha = 0.7) +   # Boxplot with grey fill
+  geom_hline(yintercept = mean(inset_data$Decline), linetype = "dashed", color = "black") +  # Mean decline as a dashed line
+  labs(title = expression(bold("B") ~ "   Global Percentage of Decline"),
+       x = NULL,
+       y = "Estimated Decline (%)") +
+  theme_minimal()
+
+# Arrange main plot with inset boxplot side by side
+grid.arrange(main_plot, inset_plot, ncol = 2, widths = c(3, 1))
+
+```
+
+**Write a detailed caption for the new plot:**
+
+*Figure 1 -*
+
+A) Graph depicts the Living Planet Index (LPI) decline for oceanic sharks and rays from 1970 to 2020. The black line represents the mean LPI, which quantifies the relative abundance of species over time. The grey shaded area represents the 95% credible interval, providing an estimate of the uncertainty in the population trend. The LPI shows a continuous decline over the past five decades, with the index dropping to below 0.25 by 2020, indicating an over 75% reduction in relative abundance. This downward trend reflects the global depletion of oceanic shark and ray populations, primarily driven by overfishing, habitat degradation, and bycatch in commercial fisheries (Pacoureau et al. 2021).
+
+B) Boxplot presents the global percentage of decline in oceanic shark and ray populations. The boxplot summarizes the posterior distribution of decline estimates derived from Bayesian models. The central horizontal line within the box represents the median estimate, while the upper and lower bounds indicate the interquartile range (IQR). The dashed horizontal line at \~70% marks the mean estimated global decline, confirming that oceanic shark and ray populations have declined by approximately 70% since 1970 (Pacoureau et al. 2021).
+
+# WORKSHOP 2
+
+# Part 3: Saving and exporting ggplots
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+# Load necessary library for saving combined plots
+library(ggplot2)
+library(gridExtra)
+library(grid)
+
+# Create a file name for the saved plot (change format if needed)
+output_file <- "Figure_1_redone_from_R.png"
+
+# Save the LPI + Decline plot as a PDF (vertically so not to crop the figure)
+ggsave("Figure_1_redone_from_R.pdf", 
+       plot = grid.arrange(main_plot, inset_plot, nrow = 2, heights = c(3, 1)),
+       width = 7, height = 10, device = "pdf")
+
+# Saved in folder: "MB5370 Module 4 (Data Science in R)"
+```
+
+# WORKSHOP 3
+
+# Part 4: Assignment
+
+Develop a full end-to-end analysis of a dataset in R. Show you how to take any dataset and use your skills as a marine data scientist to build impressive analyses and data visualisations that you can share with end-users. 
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+"C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/MB5370 Module 4 (Data Science in R)/data/SharkControl.csv"
+
+library(tidyverse)
+
+# Assuming your working directory is the project folder.
+SharkControl <- read_csv("SharkControl.csv")
+
+# View a few rows to confirm it loaded
+head(SharkControl)
+
+
+
+
+```
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+
+
+
+```
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+
+
+
+```
