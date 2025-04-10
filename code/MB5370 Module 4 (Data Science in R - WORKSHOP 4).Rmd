@@ -2,11 +2,14 @@
 title: "MB5370 Module 4 (Data Science in R) WORKSHOP 4"
 author: "Adrianna Pisarczyk"
 date: "`r Sys.Date()`"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_knit$set(root.dir = "../")  # ONLY IF your .Rmd is inside /code/
 ```
 
 ### This workshop taught me how spatial data is stored in R (features and rasters, just like in ArcGIS or QGIS), how to handle some common map projections, and how to develop and export some simple maps.
@@ -29,6 +32,8 @@ library(tmap) # Thematic maps are geographical maps in which spatial data distri
 
 ```{r echo=T, message=FALSE, warning=FALSE}
 
+getwd()
+
 #load the copepod data into R studio
 data <- read_csv("data/Workshop4data/copepods_raw.csv")
 data
@@ -49,7 +54,7 @@ ggplot(data, aes(x = latitude, y = richness_raw)) +
 
 ### I assigned a coordinate reference system (CRS) to my copepod data to account for the Earth’s curved, 3D shape when mapping in 2D. I used the widely accepted WGS84 system, which represents locations using longitude and latitude in decimal degrees, and defined it in R using the EPSG code 4326. This allowed me to accurately place my sampling points on the globe and ensured compatibility with other spatial data and basemaps.
 
-```{r echo=T, message=FALSE, warning=FALSE}
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
 
 
 sdata<- st_as_sf(data, coords = c("longitude", "latitude"), 
@@ -102,6 +107,10 @@ tmap_richness_raw <- tm_shape(sdata) +
 # tm_dots to plot dots of the coordinates. Other options are tm_polygons, tm_symbols 
 # "richness_raw" is the color scale
 
+```
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
 # Save the map as a JPEG to your output folder
 tmap_save(tmap_richness_raw, 
           filename = "C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/MB5370 Module 4 (Data Science in R)/output/Richness-map.jpeg", 
@@ -109,7 +118,110 @@ tmap_save(tmap_richness_raw,
 
 ```
 
-```{r echo=T, message=FALSE, warning=FALSE}
+## E) Mapping spatial polygons as layers:
 
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+# Load the Australian polygon shapefile
+aus <- st_read("data/Workshop4data/spatial-data/Aussie/Aussie.shp")
+
+shelf <- st_read("data/Workshop4data/spatial-data/aus_shelf/aus_shelf.shp")
+
+aus
+
+# Map polygons
+tm_shape(shelf, bbox = sdata) + 
+  tm_polygons() +
+  tm_shape(aus) + 
+  tm_polygons() + 
+  tm_shape(sdata) + 
+  tm_dots()
 
 ```
+
+### Here, I created a thematic map by layering multiple spatial objects, similar to how plots are built in ggplot2. I started with the continental shelf shapefile and set the bounding box to match my copepod data (sdat) so all points would be visible. I then added the Australia polygon layer on top, followed by my copepod sampling points using tm_dots().
+
+## F) Map customization:
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+#Explore tmap
+vignette('tmap-getstarted')
+
+tm_aus <- tm_shape(shelf, bbox = sdata) +
+  tm_polygons(col = "#B0E0E6", border.col = "grey70") +
+  tm_shape(aus) +
+  tm_polygons(col = "#f5f5f5", border.col = "black", lwd = 0.5) +
+  tm_shape(sdata) +
+  tm_dots(
+    fill = "richness_raw",
+    fill.scale = tm_scale_intervals(style = "quantile", n = 5, values = "viridis"),
+    size = 0.1
+  ) +
+  tm_title("Copepod Richness Across Australia's Shelf") +
+  tm_layout(
+    legend.text.size = 1.05,
+    legend.title.size = 1.1,
+    frame = FALSE,
+    bg.color = "white"
+  ) +
+  tm_compass(position = c(0.88, 0.18), size = 0.75)
+
+tm_aus
+
+# Save the map
+tmap_save(tm_aus,
+          filename = "C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/MB5370 Module 4 (Data Science in R)/output/Australia-Copepod-Map.jpeg",
+          width = 800, height = 600)
+```
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+# Make sure the CRS matches
+rsst <- rast("data/Workshop4data/spatial-data/MeanAVHRRSST/MeanAVHRRSST.grd")
+sdat_std <- st_read("data/Workshop4data/spatial-data/copepods_standardised.csv")
+
+# Convert to sf object (wth 'longitude' and 'latitude' columns)
+sdat_std <- st_as_sf(sdat_std, coords = c("longitude", "latitude"), crs = 4326)
+
+# Convert to terra SpatVector
+sdat_vect <- vect(sdat_std)
+
+# Extract SST values at point locations
+sdat_std$sst <- extract(rsst, sdat_vect)[,2]
+
+# Check results
+head(sdat_std)
+
+```
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+#Make map with SST sampled at each point:
+
+tmap_mode("plot")
+
+tm_sst_map <- tm_shape(rsst) +
+  tm_raster(title = "SST (°C)", palette = "-RdBu") +
+  tm_shape(sdat_std) +
+  tm_dots(col = "sst", size = 0.08, palette = "viridis", title = "Sampled SST") +
+  tm_layout(
+    title = "Sea Surface Temperature at Copepod Sampling Sites",
+    legend.outside = TRUE,
+    frame = FALSE
+  ) +
+  tm_compass(position = c("right", "bottom"), size = 0.5, text.size = 0.5)
+
+tm_sst_map
+```
+
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+# Save the map
+tmap_save(tm_sst_map,
+          filename = "C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/MB5370 Module 4 (Data Science in R)/output/Australia-Surface-Temp-Copepod-Map.jpeg",
+          width = 800, height = 600)
+
+```
+
