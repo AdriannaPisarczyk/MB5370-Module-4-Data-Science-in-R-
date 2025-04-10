@@ -1,0 +1,111 @@
+---
+title: "MB5370 Module 4 (Data Science in R) WORKSHOP 3"
+author: "Adrianna Pisarczyk"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+library(tidyverse)
+```
+
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+
+# Import the SharkControl dataset from the 'data' folder within my project
+Shark <- read_csv("../data/Shark_Control_Program.csv")
+
+# Preview the data
+head(Shark)
+
+
+# Create a data frame with the "Grand Total" row
+df <- data.frame(
+  Year  = 2001:2025,
+  Total = c(733, 621, 550, 581, 620,
+            579, 555, 585, 588, 599,
+            700, 751, 685, 585, 695,
+            530, 509, 522, 485, 594,
+            798, 749, 953, 1498, 864)
+)
+
+# Create the bar chart:
+ggplot(df, aes(x = factor(Year), y = Total)) +
+  geom_col(fill = "grey50") +  # Greyscale fill for bars
+  labs(
+    x = "Year",
+    y = "No. of sharks killed"  # Updated y-axis label; no title
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 1600, by = 200),  # Tick marks every 200 up to 1600
+    limits = c(0, 1600),
+    expand = c(0, 0)  # Remove extra space below 0 so the x-axis line touches the bars
+  ) +
+  theme_minimal() +
+  theme(
+    axis.line.x = element_line(color = "black"),  # Black x-axis line
+    axis.line.y = element_line(color = "black"),  # Black y-axis line
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)  # Rotate x-axis labels
+  )
+
+```
+
+The x-axis represents the individual years, while the y-axis shows the counts of sharks killed.
+
+Made it a create a stacked bar chart to incorporate "Area".
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+# Preview the data (optional)
+head(Shark)
+
+# Exclude the "Grand Total" row to avoid double counting in the stacked bar chart
+Shark <- Shark %>% 
+  filter(Area != "Grand Total")
+
+# Reshape the data from wide to long format.
+# This creates three columns: Area, Year, and SharksKilled.
+Shark_long <- Shark %>%
+  pivot_longer(
+    cols = -Area,
+    names_to = "Year",
+    values_to = "SharksKilled"
+  )
+
+# Ensure that "Year" is ordered correctly. Convert Year to a factor with levels 2001 to 2025.
+Shark_long <- Shark_long %>%
+  mutate(Year = factor(Year, levels = as.character(2001:2025)))
+
+# Create the stacked bar chart
+ggplot(Shark_long, aes(x = Year, y = SharksKilled, fill = Area)) +
+  geom_col() +
+  labs(
+    x = "Year",
+    y = "No. of sharks killed"
+  ) +
+  scale_y_continuous(
+    breaks = seq(0, 1600, by = 200),  # Set tick marks every 200, up to 1600
+    limits = c(0, 1600),
+    expand = c(0, 0)                 # Remove extra space below 0 so that the x-axis is flush with the bars
+  ) +
+  theme_minimal() +
+  theme(
+    # Rotate the x-axis labels to be vertical
+    axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1),
+    # Add solid black lines for both the x and y axes
+    axis.line.x = element_line(color = "black"),
+    axis.line.y = element_line(color = "black")
+  )
+
+```
+
+
+
+

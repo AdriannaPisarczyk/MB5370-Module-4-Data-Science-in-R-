@@ -1,0 +1,115 @@
+---
+title: "MB5370 Module 4 (Data Science in R) WORKSHOP 4"
+author: "Adrianna Pisarczyk"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### This workshop taught me how spatial data is stored in R (features and rasters, just like in ArcGIS or QGIS), how to handle some common map projections, and how to develop and export some simple maps.
+
+## A) Data exploration:
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+library(tidyverse)
+library(leaflet)
+library(dplyr)
+library(mgcv)
+library(ggplot2) 
+library(readr)
+
+#map packages:
+library(sf) # simple features
+library (terra) # for raster
+library(tmap) # Thematic maps are geographical maps in which spatial data distributions are visualized
+```
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+#load the copepod data into R studio
+data <- read_csv("data/Workshop4data/copepods_raw.csv")
+data
+
+# The first step to making a map using ggplot2is to plot the coordinates for the samples (segments of the CPR silks). The x and y axes are latitude and longitude, just like a map.
+ggplot(data) + 
+  aes(x = longitude, y = latitude, color = richness_raw) +
+  geom_point()
+
+# Now look at richness data (main variable for analysis) in a non-spatial way with latitude on the x-axis and richness on the y-axis
+ggplot(data, aes(x = latitude, y = richness_raw)) + 
+  stat_smooth() + 
+  geom_point()
+
+```
+
+## B) Maps in R (coordinate reference systems):
+
+### I assigned a coordinate reference system (CRS) to my copepod data to account for the Earth’s curved, 3D shape when mapping in 2D. I used the widely accepted WGS84 system, which represents locations using longitude and latitude in decimal degrees, and defined it in R using the EPSG code 4326. This allowed me to accurately place my sampling points on the globe and ensured compatibility with other spatial data and basemaps.
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+
+sdata<- st_as_sf(data, coords = c("longitude", "latitude"), 
+                 crs = 4326)
+
+##st_as_sf converts different data types to simple features. 
+## data is our original data. 
+##coords gives the names of the columns that relate to the spatial coordinates (in order of X coordinate followed by Y coordinate).
+## crs stands for coordinate reference system
+
+crs4326 <- st_crs(4326)
+crs4326 # look at the whole CRS
+crs4326$Name # pull out just the name of the crs
+## [1] "WGS 84"
+
+crs4326$wkt # crs in well-known text format
+
+```
+
+### When mapping in WGS84, I assumed degrees were linear units, even though they are actually angular. To improve spatial accuracy, I learned that data should be projected from 3D to 2D using a projected coordinate reference system (PCS). The choice of projection depends on the region and whether I want to preserve angles, distances, or area. R handles this using the PROJ software, and the `"crs"` package can help suggest the best projection for a given dataset.
+
+## C) Feature collection:
+
+```{r echo=T, message=FALSE, warning=FALSE, results="hide"}
+
+sdata
+```
+
+### After converting my data to a simple features object (sf), it looked similar to a regular dataframe but included a new geometry column that stores the spatial coordinates. This format allows me to use typical data wrangling functions like inner_join, as well as plotting and modelling tools like ggplot2 and glm. The sf package also enables spatial-specific operations, such as st_join, which uses coordinate-based logic. In essence, an sf object is like a shapefile—it's a table that’s spatially aware, with additional information about geometry type and coordinate systems.
+
+## D) Cartography:
+
+```{r echo=T, message=FALSE, warning=FALSE}
+# Plot only using richness column (with single brackets)
+plot(sdata["richness_raw"])
+
+#using tmap
+
+tmap_richness_raw <- tm_shape(sdata) +
+  tm_dots(
+    fill = "richness_raw",  # use 'fill' instead of 'col' in tmap v4
+    fill.scale = tm_scale_intervals(
+      style = "quantile",   # auto-group into quantile bins
+      n = 5,                # number of bins (you can adjust this)
+      values = "viridis"    # colour palette (e.g., "viridis", "plasma", "Blues")
+    ),
+    size = 0.1              # dot size
+  )
+
+# tm_dots to plot dots of the coordinates. Other options are tm_polygons, tm_symbols 
+# "richness_raw" is the color scale
+
+# Save the map as a JPEG to your output folder
+tmap_save(tmap_richness_raw, 
+          filename = "C:/Users/Adrianna/Documents/AUSTRALIA/JCU/MY CLASSES/Year 2 SEM 1/MB5370 - Marine Techniques 1/MB5370 Module 4 (Data Science in R)/output/Richness-map.jpeg", 
+          width = 600, height = 600)
+
+```
+
+```{r echo=T, message=FALSE, warning=FALSE}
+
+
+```
